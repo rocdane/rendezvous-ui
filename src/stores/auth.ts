@@ -1,171 +1,126 @@
 /**src/stores/auth.ts */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { apiClient, getCsrfCookie } from '@/lib/api';
-import { User, LoginCredentials, RegisterData, AuthResponse } from '@/types';
+import { apiClient, type User, type LoginData, type RegisterData, type ResetData } from '@/lib/api';
 import { toast } from 'sonner';
-import axios from 'axios';
 
-interface AuthStore {
-  // État
+interface AuthState {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-
-  // Actions
-  login: (credentials: LoginCredentials) => Promise<void>;
+  login: (data: LoginData) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
-  logout: () => void;
-  refreshUser: () => Promise<void>;
-  setUser: (user: User | null) => void;
-  setToken: (token: string | null) => void;
-  initialize: () => void;
+  reset: (data: ResetData) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  handleOAuthLogin: (provider: string) => Promise<void>;
 }
 
-export const useAuthStore = create<AuthStore>()(
+export const useAuth = create<AuthState>()(
   persist(
     (set, get) => ({
-      // État initial
       user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: false,
 
-      // Connexion
-      login: async (credentials: LoginCredentials) => {
+      login: async (data: LoginData) => {
         set({ isLoading: true });
-        
         try {
-          // Récupérer le cookie CSRF pour Laravel Sanctum
-          await getCsrfCookie();
+          const response = await apiClient.login(data);
+          apiClient.setToken(response.token);
           
-          const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-          const { token, user } = response.data;
-
           set({
-            user,
-            token,
+            user: response.user,
             isAuthenticated: true,
             isLoading: false,
           });
-
-          // Stocker le token dans localStorage pour les requêtes futures
-          localStorage.setItem('auth_token', token);
           
-          toast.success(`Bienvenue ${user.name} !`);
+          toast.success('Connexion réussie !');
         } catch (error) {
           set({ isLoading: false });
+          toast.error(error instanceof Error ? error.message : 'Erreur de connexion');
           throw error;
         }
       },
 
-      // Inscription
       register: async (data: RegisterData) => {
         set({ isLoading: true });
-        
         try {
-          await getCsrfCookie();
+          const response = await apiClient.register(data);
+          apiClient.setToken(response.token);
           
-          const response = await apiClient.post<AuthResponse>('/auth/register', data);
-          const { token, user } = response.data;
-
           set({
-            user,
-            token,
+            user: response.user,
             isAuthenticated: true,
             isLoading: false,
           });
-
-          localStorage.setItem('auth_token', token);
           
-          toast.success(`Compte créé avec succès ! Bienvenue ${user.name} !`);
+          toast.success('Compte créé avec succès !');
         } catch (error) {
           set({ isLoading: false });
+          toast.error(error instanceof Error ? error.message : 'Erreur lors de la création du compte');
           throw error;
         }
       },
 
-      // Déconnexion
-      logout: () => {
-        // Appel API pour invalider le token côté serveur
-        apiClient.post('/auth/logout').catch(() => {
-          // Ignorer les erreurs de déconnexion
-        });
-
-        // Nettoyer le localStorage
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
-
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
-
-        toast.success('Déconnexion réussie');
-        
-        // Rediriger vers la page de connexion
-        window.location.href = '/auth/login';
-      },
-
-      // Rafraîchir les données utilisateur
-      refreshUser: async () => {
+      reset: async (data: ResetData) => {
+        set({ isLoading: true });
         try {
-          const response = await apiClient.get<{ data: User }>('/user');
-          const user = response.data.data;
+          const response = await apiClient.reset(data);
+          apiClient.setToken(response.token);
           
-          set({ user });
+          set({
+            user: response.user,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+          
+          toast.success('Compte réinitialisé avec succès !');
         } catch (error) {
-          // Si l'utilisateur n'est plus authentifié, le déconnecter
-          if (axios.isAxiosError(error) && error.response?.status === 401) {
-            get().logout();
-          }
+          set({ isLoading: false });
+          toast.error(error instanceof Error ? error.message : 'Erreur lors de la réinitialisation du compte');
+          throw error;
         }
       },
 
-      // Setter pour l'utilisateur
-      setUser: (user: User | null) => {
-        set({ 
-          user, 
-          isAuthenticated: !!user 
-        });
-      },
-
-      // Setter pour le token
-      setToken: (token: string | null) => {
-        set({ 
-          token, 
-          isAuthenticated: !!token 
-        });
-        
-        if (token) {
-          localStorage.setItem('auth_token', token);
-        } else {
-          localStorage.removeItem('auth_token');
+      logout: async () => {
+        try {
+          await apiClient.logout();
+        } catch (error) {
+          console.error('Erreur lors de la déconnexion:', error);
+        } finally {
+          apiClient.setToken(null);
+          set({
+            user: null,
+            isAuthenticated: false,
+          });
+          toast.success('Déconnexion réussie');
         }
       },
 
-      // Initialiser le store depuis localStorage
-      initialize: () => {
-        const token = localStorage.getItem('auth_token');
-        const userStr = localStorage.getItem('user');
-        
-        if (token && userStr) {
-          try {
-            const user = JSON.parse(userStr);
-            set({
-              user,
-              token,
-              isAuthenticated: true,
-            });
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          } catch (error) {
-            // Données corrompues, nettoyer
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user');
-          }
+      checkAuth: async () => {
+        try {
+          const response = await apiClient.me();
+          set({
+            user: response.user,
+            isAuthenticated: true,
+          });
+        } catch (error) {
+          apiClient.setToken(null);
+          set({
+            user: null,
+            isAuthenticated: false,
+          });
+        }
+      },
+
+      handleOAuthLogin: async (provider: string) => {
+        try {
+          const response = await apiClient.getOAuthRedirectUrl(provider);
+          window.location.href = response.redirect_url;
+        } catch (error) {
+          toast.error(`Erreur lors de la connexion avec ${provider}`);
+          throw error;
         }
       },
     }),
@@ -173,28 +128,8 @@ export const useAuthStore = create<AuthStore>()(
       name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
     }
   )
 );
-
-// Hook personnalisé pour l'authentification
-export const useAuth = () => {
-  const store = useAuthStore();
-  
-  return {
-    user: store.user,
-    token: store.token,
-    isAuthenticated: store.isAuthenticated,
-    isLoading: store.isLoading,
-    login: store.login,
-    register: store.register,
-    logout: store.logout,
-    refreshUser: store.refreshUser,
-    setUser: store.setUser,
-    setToken: store.setToken,
-    initialize: store.initialize,
-  };
-};

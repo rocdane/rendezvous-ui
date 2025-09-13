@@ -1,3 +1,6 @@
+// ================================
+// src/app/auth/login/page.tsx - Version mise à jour
+// ================================
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/stores/auth';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, OAuthButtons } from '@/components/ui';
 
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -65,7 +68,6 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8">
-        
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <Input
             label="Adresse email"
@@ -97,15 +99,6 @@ export default function LoginPage() {
                 Se souvenir de moi
               </label>
             </div>
-
-            <div className="text-sm">
-              <Link
-                href={"/auth/forgot-password" as never}
-                className="font-medium text-primary-600 hover:text-primary-500"
-              >
-                Mot de passe oublié ?
-              </Link>
-            </div>
           </div>
 
           <Button
@@ -117,6 +110,9 @@ export default function LoginPage() {
             Se connecter
           </Button>
         </form>
+        {/* Boutons OAuth */}
+        <OAuthButtons mode="login" className="mb-6" />
+        
       </div>
     </>
   );

@@ -1,3 +1,6 @@
+// ================================
+// src/app/auth/register/page.tsx - Version mise à jour
+// ================================
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/stores/auth';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, OAuthButtons } from '@/components/ui';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
@@ -140,6 +143,8 @@ export default function RegisterPage() {
             Créer mon compte
           </Button>
         </form>
+        {/* Boutons OAuth */}
+        <OAuthButtons mode="register" className="mb-6" />
       </div>
     </>
   );

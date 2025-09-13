@@ -1,3 +1,7 @@
+export interface SocialRedirectResponse {
+  redirect_url: string;
+}
+
 export interface User {
   id: number;
   name: string;
@@ -5,8 +9,10 @@ export interface User {
   timezone: string;
   slug: string;
   avatar?: string;
+  providers?: string[];
   created_at: string;
   updated_at: string;
+  last_login_at?: string;
 }
 
 export interface OAuthProvider {
@@ -86,10 +92,39 @@ export interface AvailabilityFormData {
   is_available: boolean;
 }
 
-// API Response types
 export interface ApiResponse<T> {
-  data: T;
+  data?: T;
   message?: string;
+  errors?: Record<string, string[]>;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  timezone?: string;
+}
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface ResetData {
+  email: string;
+}
+
+export interface AuthResponse {
+  message: string;
+  user: User;
+  token: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
 }
 
 export interface PaginatedResponse<T> {

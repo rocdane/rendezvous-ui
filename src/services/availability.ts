@@ -1,4 +1,4 @@
-import { apiClient, apiRequest } from '@/lib/api';
+import { apiClient, apiRequest} from '@/lib/api';
 import { Availability, AvailabilityFormData, WeeklyAvailability } from '@/types';
 
 export const availabilityService = {

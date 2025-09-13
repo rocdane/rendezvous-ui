@@ -1,22 +1,4 @@
-/**src/services/authService.ts */
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  avatar?: string;
-  provider: string;
-}
-
-export interface AuthResponse {
-  access_token: string;
-  token_type: string;
-  user: User;
-}
-
-export interface SocialRedirectResponse {
-  redirect_url: string;
-}
-
+import { type User, type AuthResponse, type SocialRedirectResponse } from "../types";
 export type Provider = 'google' | 'microsoft' | 'github';
 
 class AuthService {
