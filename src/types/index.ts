@@ -1,3 +1,6 @@
+export * from "./utils";
+export * from "./flexible";
+
 export interface SocialRedirectResponse {
   redirect_url: string;
 }
@@ -92,10 +95,17 @@ export interface AvailabilityFormData {
   is_available: boolean;
 }
 
-export interface ApiResponse<T> {
+export interface ApiResponse<T = unknown> {
   data?: T;
   message?: string;
   errors?: Record<string, string[]>;
+  status: number;
+}
+
+export interface ApiError {
+  message: string;
+  errors?: Record<string, string[]>;
+  status: number;
 }
 
 export interface RegisterData {
@@ -119,12 +129,8 @@ export interface AuthResponse {
   message: string;
   user: User;
   token: string;
-}
-
-export interface AuthResponse {
   access_token: string;
   token_type: string;
-  user: User;
 }
 
 export interface PaginatedResponse<T> {
@@ -141,11 +147,6 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export interface ApiError {
-  message: string;
-  errors?: Record<string, string[]>;
-}
-
 // Auth types
 export interface LoginCredentials {
   email: string;
@@ -158,11 +159,6 @@ export interface RegisterData {
   password: string;
   password_confirmation: string;
   timezone?: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
 }
 
 // Calendar types

@@ -1,7 +1,8 @@
 /**src/stores/auth.ts */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { apiClient, type User, type LoginData, type RegisterData, type ResetData } from '@/lib/api';
+import { type User, type LoginData, type RegisterData, type ResetData } from '@/types';
+import { apiClient } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface AuthState {

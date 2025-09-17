@@ -1,8 +1,4 @@
-// ================================
-// src/components/providers/auth-provider.tsx
-// ================================
 'use client';
-
 import { ReactNode, useEffect } from 'react';
 import { useAuth } from '@/stores/auth';
 import { apiClient } from '@/lib/api';

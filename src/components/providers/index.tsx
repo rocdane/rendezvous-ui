@@ -1,6 +1,3 @@
-// ================================
-// src/components/providers/index.tsx
-// ================================
 'use client';
 
 import { ReactNode } from 'react';

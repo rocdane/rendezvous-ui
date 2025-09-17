@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/stores/auth';
-import { eventService, bookingService } from '@/services';
 import { Button, Card, Badge } from '@/components/ui';
 import { 
   Calendar, 
@@ -21,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Event, Booking } from '@/types';
 import { toast } from 'sonner';
+import { apiClient } from "@/lib/api";
 
 // Define PaginatedResponse type if not imported from elsewhere
 type PaginatedResponse<T> = {
@@ -45,13 +45,13 @@ export default function DashboardPage() {
       setIsLoading(true);
       
       // Charger les événements
-      const eventsResponse = await eventService.getEvents(1);
+      const eventsResponse = await apiClient.getEvents(1);
       const userEvents = eventsResponse.data || [];
       setEvents(userEvents.slice(0, 5)); // Derniers 5 événements
       setEventsData(eventsResponse);
 
       // Charger les réservations récentes
-      const bookingsResponse = await bookingService.getBookings(1);
+      const bookingsResponse = await apiClient.getBookings(1);
       const userBookings = bookingsResponse.data || [];
       setRecentBookings(userBookings.slice(0, 5)); // Dernières 5 réservations
       setBookingsData(bookingsResponse);

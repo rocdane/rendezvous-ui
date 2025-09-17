@@ -1,4 +1,4 @@
-import { type User, type AuthResponse, type SocialRedirectResponse } from "../types";
+import { type User, type AuthResponse, type SocialRedirectResponse } from "@/types";
 export type Provider = 'google' | 'microsoft' | 'github';
 
 class AuthService {
